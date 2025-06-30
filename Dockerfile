@@ -1,15 +1,18 @@
-# voting-system-web/Dockerfile
-FROM node:20
+FROM node:20 AS builder
 
 WORKDIR /app
 
+COPY package.json yarn.lock ./
+RUN yarn install
+
 COPY . .
 
-RUN yarn install
 RUN yarn build
 
-RUN yarn global add serve
+FROM nginx:alpine
 
-EXPOSE 5173
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-CMD ["serve", "-s", "dist", "-l", "5173"]
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
